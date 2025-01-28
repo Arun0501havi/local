@@ -79,6 +79,7 @@
             border-radius: 12px;
             background-size: cover;
             margin-bottom: 1rem;
+            background-color: #ddd;
         }
 
         .visited-badge {
@@ -124,7 +125,11 @@
             color: white;
         }
 
-        /* Add more styles for animations, loading states, etc. */
+        .loading {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--secondary);
+        }
     </style>
 </head>
 <body>
@@ -132,7 +137,6 @@
         <div class="hero">
             <h1>LocalWonders</h1>
             <div class="location-header">
-                <svg width="24" height="24" viewBox="0 0 24 24"><!-- Pin icon --></svg>
                 <span class="current-location">Detecting your location...</span>
             </div>
         </div>
@@ -145,49 +149,94 @@
         </div>
 
         <div class="places-grid">
-            <!-- Dynamic content will be inserted here -->
+            <div class="loading">Loading places...</div>
         </div>
     </div>
 
     <script>
-        // Geolocation and Local Storage Handling
+        const API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
         let visitedPlaces = JSON.parse(localStorage.getItem('visitedPlaces')) || [];
-        
-        navigator.geolocation.getCurrentPosition(position => {
-            const { latitude, longitude } = position.coords;
-            document.querySelector('.current-location').textContent = "📍 Current Location";
-            loadRecommendations(latitude, longitude);
-        });
+        let currentCoords = null;
 
-        async function loadRecommendations(lat, lon) {
-            // Integration with local maps API (pseudo-code)
-            const recommendations = await fetchMapData(lat, lon);
-            displayPlaces(recommendations);
+        // Initialize the application
+        async function initializeApp() {
+            try {
+                const position = await getCurrentPosition();
+                currentCoords = position.coords;
+                document.querySelector('.current-location').textContent = "📍 Current Location";
+                loadRecommendations('all');
+            } catch (error) {
+                console.error('Error:', error);
+                document.querySelector('.places-grid').innerHTML = 
+                    '<div class="error">Please enable location services to use this app</div>';
+            }
         }
 
-        function fetchMapData(lat, lon) {
-            // Replace with actual API call to your chosen maps provider
-            return Promise.resolve([
-                { id: 1, name: "Central Park", rating: 4.8, type: "park", image: "park.jpg" },
-                { id: 2, name: "Modern Art Museum", rating: 4.5, type: "museum", image: "museum.jpg" },
-                // Add more sample data
-            ]);
+        function getCurrentPosition() {
+            return new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject);
+            });
+        }
+
+        async function loadRecommendations(category) {
+            try {
+                const places = await fetchPlaces(currentCoords.latitude, currentCoords.longitude, category);
+                displayPlaces(places);
+            } catch (error) {
+                console.error('Error loading recommendations:', error);
+                document.querySelector('.places-grid').innerHTML = 
+                    '<div class="error">Failed to load places. Please try again later.</div>';
+            }
+        }
+
+        async function fetchPlaces(lat, lon, category) {
+            const categoryMapping = {
+                'all': '',
+                'restaurant': 'restaurant',
+                'park': 'park',
+                'museum': 'museum'
+            };
+
+            const url = new URL('https://corsproxy.io/'); // Proxy to handle CORS
+            url.searchParams.set('https://maps.googleapis.com/maps/api/place/nearbysearch/json', 
+                `?location=${lat},${lon}&radius=1500&type=${categoryMapping[category]}&key=${API_KEY}`);
+
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const data = await response.json();
+            if (data.status !== 'OK') throw new Error(data.error_message || 'API error');
+
+            return data.results.map(place => ({
+                id: place.place_id,
+                name: place.name,
+                rating: place.rating || 'N/A',
+                type: place.types[0],
+                photo: place.photos?.[0]?.photo_reference,
+                address: place.vicinity
+            }));
+        }
+
+        function getPhotoUrl(photoReference) {
+            return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${API_KEY}`;
         }
 
         function displayPlaces(places) {
             const grid = document.querySelector('.places-grid');
-            grid.innerHTML = places.filter(place => !visitedPlaces.includes(place.id))
+            grid.innerHTML = places
+                .filter(place => !visitedPlaces.includes(place.id))
                 .map(place => `
                     <div class="place-card">
-                        ${visitedPlaces.includes(place.id) ? 
-                            '<div class="visited-badge">Visited</div>' : ''}
-                        <div class="place-image" style="background-image: url('${place.image}')"></div>
+                        ${place.photo ? 
+                            `<div class="place-image" style="background-image: url('${getPhotoUrl(place.photo)}')"></div>` :
+                            '<div class="place-image no-image">No Image Available</div>'}
                         <h3>${place.name}</h3>
                         <div class="rating">
-                            <span class="star">★★★★★</span>
+                            <span class="star">${typeof place.rating === 'number' ? '★'.repeat(Math.floor(place.rating)) : ''}</span>
                             ${place.rating}
                         </div>
-                        <button onclick="markVisited(${place.id})" class="save-btn">
+                        <p class="address">${place.address}</p>
+                        <button onclick="markVisited('${place.id}')" class="save-btn">
                             Mark as Visited
                         </button>
                     </div>
@@ -197,17 +246,20 @@
         function markVisited(placeId) {
             visitedPlaces.push(placeId);
             localStorage.setItem('visitedPlaces', JSON.stringify(visitedPlaces));
-            loadRecommendations(); // Refresh the list
+            loadRecommendations(document.querySelector('.filter-btn.active').dataset.filter);
         }
 
-        // Add event listeners for filters
+        // Event listeners
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                // Implement filter logic
+                loadRecommendations(btn.dataset.filter);
             });
         });
+
+        // Start the app
+        initializeApp();
     </script>
 </body>
 </html>
