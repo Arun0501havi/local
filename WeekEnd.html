@@ -3,263 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocalWonders • Personalized Discovery</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <title>OpenSanctuary • Privacy-First Women's Wellness</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2A2B2E;
-            --secondary: #5C6B73;
-            --accent: #C4D4E0;
-            --highlight: #FF6B6B;
+            --primary: #FF6B6B;
+            --secondary: #6C5B7B;
+            --accent: #355C7D;
+            --background: #F8BBD0;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Quicksand', sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: radial-gradient(circle at center, #FFF0F5, #FFE4E1);
             min-height: 100vh;
-            color: var(--primary);
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .hero {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .location-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .places-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            padding: 1rem;
-        }
-
-        .place-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 1.5rem;
+        .floating-nav {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.9);
+            padding: 1rem 2rem;
+            border-radius: 50px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .place-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .place-image {
-            height: 200px;
-            border-radius: 12px;
-            background-size: cover;
-            margin-bottom: 1rem;
-            background-color: #ddd;
-        }
-
-        .visited-badge {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: var(--highlight);
-            color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-        }
-
-        .rating {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--secondary);
+            gap: 1.5rem;
         }
 
-        .star {
-            color: #FFD700;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .filter-btn {
-            padding: 0.8rem 2rem;
+        .nav-btn {
+            background: none;
             border: none;
+            padding: 0.8rem 1.5rem;
             border-radius: 30px;
-            background: var(--accent);
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .filter-btn.active {
-            background: var(--highlight);
+        .nav-btn.active {
+            background: var(--primary);
             color: white;
         }
 
-        .loading {
-            text-align: center;
-            font-size: 1.2rem;
-            color: var(--secondary);
+        .portal-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 1rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            transform: perspective(1000px) rotateY(0deg);
+            transition: transform 0.5s ease;
+        }
+
+        .portal-card:hover {
+            transform: perspective(1000px) rotateY(10deg) translateY(-10px);
+        }
+
+        .ai-chat {
+            position: fixed;
+            bottom: 140px;
+            right: 2rem;
+            width: 300px;
+            background: white;
+            border-radius: 20px;
+            padding: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .voice-btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 15px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="hero">
-            <h1>LocalWonders</h1>
-            <div class="location-header">
-                <span class="current-location">Detecting your location...</span>
-            </div>
-        </div>
+    <div class="floating-nav">
+        <button class="nav-btn active" data-category="health">💖 Health</button>
+        <button class="nav-btn" data-category="fitness">🏋️ Fitness</button>
+        <button class="nav-btn" data-category="mental">🧠 Mental</button>
+    </div>
 
-        <div class="controls">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="restaurant">Restaurants</button>
-            <button class="filter-btn" data-filter="park">Parks</button>
-            <button class="filter-btn" data-filter="museum">Museums</button>
-        </div>
+    <div id="content"></div>
 
-        <div class="places-grid">
-            <div class="loading">Loading places...</div>
-        </div>
+    <div class="ai-chat">
+        <div id="chat-output"></div>
+        <button class="voice-btn" id="voice-button">🎤 Hold to Speak</button>
     </div>
 
     <script>
-        const API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
-        let visitedPlaces = JSON.parse(localStorage.getItem('visitedPlaces')) || [];
-        let currentCoords = null;
+        // Local wellness database
+        const wellnessData = {
+            health: [
+                { title: "Cycle Tracking Guide", content: "Learn about natural cycle awareness..." },
+                { title: "Nutrition Basics", content: "Essential nutrients for women's health..." }
+            ],
+            fitness: [
+                { title: "Home Yoga Flow", content: "15-minute beginner-friendly sequence..." },
+                { title: "Core Strength", content: "Equipment-free core workout..." }
+            ],
+            mental: [
+                { title: "Mindfulness Basics", content: "Introduction to meditation..." },
+                { title: "Stress Management", content: "5-minute relaxation techniques..." }
+            ]
+        };
 
-        // Initialize the application
-        async function initializeApp() {
-            try {
-                const position = await getCurrentPosition();
-                currentCoords = position.coords;
-                document.querySelector('.current-location').textContent = "📍 Current Location";
-                loadRecommendations('all');
-            } catch (error) {
-                console.error('Error:', error);
-                document.querySelector('.places-grid').innerHTML = 
-                    '<div class="error">Please enable location services to use this app</div>';
-            }
+        // Local "AI" responses
+        const localAI = {
+            'stress': "Try box breathing: Inhale 4s, hold 4s, exhale 6s. Repeat 5 times.",
+            'workout': "Recommended: 15-minute yoga flow. Focus on gentle stretches.",
+            'default': "I suggest trying our guided breathing exercise. Ready to start?"
+        };
+
+        // Speech recognition setup
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        let isListening = false;
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript.toLowerCase();
+            const response = localAI[transcript] || localAI.default;
+            showResponse(response);
+        };
+
+        recognition.onerror = () => {
+            showResponse("Voice input not available. Please type your question.");
+        };
+
+        // Voice button interaction
+        document.getElementById('voice-button').addEventListener('mousedown', () => {
+            isListening = true;
+            recognition.start();
+            document.getElementById('voice-button').textContent = "🎤 Listening...";
+        });
+
+        document.getElementById('voice-button').addEventListener('mouseup', () => {
+            isListening = false;
+            recognition.stop();
+            document.getElementById('voice-button').textContent = "🎤 Hold to Speak";
+        });
+
+        function showResponse(text) {
+            const output = document.getElementById('chat-output');
+            output.innerHTML = `<div class="response">${text}</div>`;
         }
 
-        function getCurrentPosition() {
-            return new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject);
-            });
+        // Content rendering
+        function renderContent(category) {
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = wellnessData[category].map(item => `
+                <div class="portal-card">
+                    <h3>${item.title}</h3>
+                    <p>${item.content}</p>
+                </div>
+            `).join('');
         }
 
-        async function loadRecommendations(category) {
-            try {
-                const places = await fetchPlaces(currentCoords.latitude, currentCoords.longitude, category);
-                displayPlaces(places);
-            } catch (error) {
-                console.error('Error loading recommendations:', error);
-                document.querySelector('.places-grid').innerHTML = 
-                    '<div class="error">Failed to load places. Please try again later.</div>';
-            }
-        }
-
-        async function fetchPlaces(lat, lon, category) {
-            const categoryMapping = {
-                'all': '',
-                'restaurant': 'restaurant',
-                'park': 'park',
-                'museum': 'museum'
-            };
-
-            const url = new URL('https://corsproxy.io/'); // Proxy to handle CORS
-            url.searchParams.set('https://maps.googleapis.com/maps/api/place/nearbysearch/json', 
-                `?location=${lat},${lon}&radius=1500&type=${categoryMapping[category]}&key=${API_KEY}`);
-
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Network response was not ok');
-            
-            const data = await response.json();
-            if (data.status !== 'OK') throw new Error(data.error_message || 'API error');
-
-            return data.results.map(place => ({
-                id: place.place_id,
-                name: place.name,
-                rating: place.rating || 'N/A',
-                type: place.types[0],
-                photo: place.photos?.[0]?.photo_reference,
-                address: place.vicinity
-            }));
-        }
-
-        function getPhotoUrl(photoReference) {
-            return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${API_KEY}`;
-        }
-
-        function displayPlaces(places) {
-            const grid = document.querySelector('.places-grid');
-            grid.innerHTML = places
-                .filter(place => !visitedPlaces.includes(place.id))
-                .map(place => `
-                    <div class="place-card">
-                        ${place.photo ? 
-                            `<div class="place-image" style="background-image: url('${getPhotoUrl(place.photo)}')"></div>` :
-                            '<div class="place-image no-image">No Image Available</div>'}
-                        <h3>${place.name}</h3>
-                        <div class="rating">
-                            <span class="star">${typeof place.rating === 'number' ? '★'.repeat(Math.floor(place.rating)) : ''}</span>
-                            ${place.rating}
-                        </div>
-                        <p class="address">${place.address}</p>
-                        <button onclick="markVisited('${place.id}')" class="save-btn">
-                            Mark as Visited
-                        </button>
-                    </div>
-                `).join('');
-        }
-
-        function markVisited(placeId) {
-            visitedPlaces.push(placeId);
-            localStorage.setItem('visitedPlaces', JSON.stringify(visitedPlaces));
-            loadRecommendations(document.querySelector('.filter-btn.active').dataset.filter);
-        }
-
-        // Event listeners
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                loadRecommendations(btn.dataset.filter);
+        // Navigation handling
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                renderContent(this.dataset.category);
             });
         });
 
-        // Start the app
-        initializeApp();
+        // Initial load
+        renderContent('health');
     </script>
 </body>
 </html>
