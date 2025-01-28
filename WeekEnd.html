@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalWonders • Personalized Discovery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2A2B2E;
+            --secondary: #5C6B73;
+            --accent: #C4D4E0;
+            --highlight: #FF6B6B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: var(--primary);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .location-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .places-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 1rem;
+        }
+
+        .place-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .place-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .place-image {
+            height: 200px;
+            border-radius: 12px;
+            background-size: cover;
+            margin-bottom: 1rem;
+        }
+
+        .visited-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--highlight);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--secondary);
+        }
+
+        .star {
+            color: #FFD700;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .filter-btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 30px;
+            background: var(--accent);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: var(--highlight);
+            color: white;
+        }
+
+        /* Add more styles for animations, loading states, etc. */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>LocalWonders</h1>
+            <div class="location-header">
+                <svg width="24" height="24" viewBox="0 0 24 24"><!-- Pin icon --></svg>
+                <span class="current-location">Detecting your location...</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="restaurant">Restaurants</button>
+            <button class="filter-btn" data-filter="park">Parks</button>
+            <button class="filter-btn" data-filter="museum">Museums</button>
+        </div>
+
+        <div class="places-grid">
+            <!-- Dynamic content will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // Geolocation and Local Storage Handling
+        let visitedPlaces = JSON.parse(localStorage.getItem('visitedPlaces')) || [];
+        
+        navigator.geolocation.getCurrentPosition(position => {
+            const { latitude, longitude } = position.coords;
+            document.querySelector('.current-location').textContent = "📍 Current Location";
+            loadRecommendations(latitude, longitude);
+        });
+
+        async function loadRecommendations(lat, lon) {
+            // Integration with local maps API (pseudo-code)
+            const recommendations = await fetchMapData(lat, lon);
+            displayPlaces(recommendations);
+        }
+
+        function fetchMapData(lat, lon) {
+            // Replace with actual API call to your chosen maps provider
+            return Promise.resolve([
+                { id: 1, name: "Central Park", rating: 4.8, type: "park", image: "park.jpg" },
+                { id: 2, name: "Modern Art Museum", rating: 4.5, type: "museum", image: "museum.jpg" },
+                // Add more sample data
+            ]);
+        }
+
+        function displayPlaces(places) {
+            const grid = document.querySelector('.places-grid');
+            grid.innerHTML = places.filter(place => !visitedPlaces.includes(place.id))
+                .map(place => `
+                    <div class="place-card">
+                        ${visitedPlaces.includes(place.id) ? 
+                            '<div class="visited-badge">Visited</div>' : ''}
+                        <div class="place-image" style="background-image: url('${place.image}')"></div>
+                        <h3>${place.name}</h3>
+                        <div class="rating">
+                            <span class="star">★★★★★</span>
+                            ${place.rating}
+                        </div>
+                        <button onclick="markVisited(${place.id})" class="save-btn">
+                            Mark as Visited
+                        </button>
+                    </div>
+                `).join('');
+        }
+
+        function markVisited(placeId) {
+            visitedPlaces.push(placeId);
+            localStorage.setItem('visitedPlaces', JSON.stringify(visitedPlaces));
+            loadRecommendations(); // Refresh the list
+        }
+
+        // Add event listeners for filters
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                // Implement filter logic
+            });
+        });
+    </script>
+</body>
+</html>
